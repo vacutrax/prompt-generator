@@ -116,6 +116,6 @@ Please provide a detailed, comprehensive response with specific examples, clear 
 
 app.get('/api/health', (req, res) => res.json({ok:true}));
 
-createServer(app).listen(3000, '0.0.0.0', () => {
-  console.log('🚀 Running at http://127.0.0.1:3000');
+createServer(app).listen(process.env.PORT || 3000, '0.0.0.0', () => {
+console.log('🚀 Running at http://0.0.0.0:' + (process.env.PORT || 3000));
 });
