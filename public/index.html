@@ -2,10 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#0a0f14">
     <title>Prompt Generator</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
         :root {
             --bg-primary: #0a0f14;
@@ -27,135 +30,230 @@
             --gradient-glow: linear-gradient(135deg, rgba(0,229,212,0.3) 0%, rgba(0,212,255,0.3) 50%, rgba(0,184,168,0.3) 100%);
             --shadow-glow: 0 0 20px rgba(0,229,212,0.15), 0 0 40px rgba(0,212,255,0.1);
             --shadow-glow-strong: 0 0 30px rgba(0,229,212,0.25), 0 0 60px rgba(0,212,255,0.2), 0 0 90px rgba(0,184,168,0.1);
+            --safe-area-top: env(safe-area-inset-top, 0px);
+            --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+            --safe-area-left: env(safe-area-inset-left, 0px);
+            --safe-area-right: env(safe-area-inset-right, 0px);
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+            position: fixed;
+            width: 100%;
+            -webkit-overflow-scrolling: touch;
         }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
             background: var(--bg-primary);
             color: var(--text-primary);
-            height: 100vh;
             display: flex;
             flex-direction: column;
-            overflow: hidden;
+            overscroll-behavior: none;
         }
 
+        /* Header - Mobile Optimized */
         .header {
-            padding: 20px 32px;
+            padding: 12px 16px;
+            padding-top: calc(12px + var(--safe-area-top));
             border-bottom: 1px solid var(--border-subtle);
-            background: rgba(15, 22, 32, 0.8);
+            background: rgba(15, 22, 32, 0.95);
             backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-shrink: 0;
+            z-index: 100;
+            position: relative;
         }
 
-        .logo-container { display: flex; align-items: center; gap: 16px; }
-        .logo-icon { width: 44px; height: 44px; position: relative; }
-        .logo-icon svg { width: 100%; height: 100%; filter: drop-shadow(0 0 10px rgba(0,229,212,0.4)); }
-        .logo-text { display: flex; flex-direction: column; gap: 2px; }
+        .logo-container { display: flex; align-items: center; gap: 10px; }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .logo-icon svg {
+            width: 100%;
+            height: 100%;
+            filter: drop-shadow(0 0 8px rgba(0,229,212,0.4));
+        }
+
+        .logo-text { display: flex; flex-direction: column; gap: 1px; }
+
         .logo-title {
-            font-size: 22px; font-weight: 700;
+            font-size: 18px;
+            font-weight: 700;
             background: linear-gradient(135deg, #00e5d4 0%, #00d4ff 50%, #00b8a8 100%);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-            letter-spacing: -0.5px; line-height: 1.1;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.5px;
+            line-height: 1.1;
         }
+
         .logo-subtitle {
-            font-size: 11px; color: var(--text-muted); letter-spacing: 2px;
-            text-transform: uppercase; font-weight: 500;
+            font-size: 9px;
+            color: var(--text-muted);
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            font-weight: 500;
         }
 
-        .api-status { display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--text-secondary); font-weight: 500; }
+        .api-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            flex-shrink: 0;
+        }
+
         .status-dot {
-            width: 8px; height: 8px; border-radius: 50%; background: var(--text-muted);
-            box-shadow: 0 0 8px var(--text-muted); transition: all 0.4s ease;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--text-muted);
+            box-shadow: 0 0 6px var(--text-muted);
+            transition: all 0.4s ease;
+            flex-shrink: 0;
         }
-        .status-dot.ready { background: var(--accent-green); box-shadow: 0 0 12px rgba(0,255,136,0.6), 0 0 24px rgba(0,255,136,0.3); }
-        .status-dot.pending { background: var(--accent-gold); box-shadow: 0 0 12px rgba(255,215,0,0.6); animation: pulse-dot 1.5s ease-in-out infinite; }
-        .status-dot.error { background: #ff4466; box-shadow: 0 0 12px rgba(255,68,102,0.6); }
-        @keyframes pulse-dot { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.6; transform: scale(1.2); } }
 
+        .status-dot.ready {
+            background: var(--accent-green);
+            box-shadow: 0 0 8px rgba(0,255,136,0.6), 0 0 16px rgba(0,255,136,0.3);
+        }
+
+        .status-dot.pending {
+            background: var(--accent-gold);
+            box-shadow: 0 0 8px rgba(255,215,0,0.6);
+            animation: pulse-dot 1.5s ease-in-out infinite;
+        }
+
+        .status-dot.error {
+            background: #ff4466;
+            box-shadow: 0 0 8px rgba(255,68,102,0.6);
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.2); }
+        }
+
+        /* Chat Container - Mobile Optimized */
         .chat-container {
-            flex: 1; overflow-y: auto; padding: 32px;
-            display: flex; flex-direction: column; gap: 20px;
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            padding: 16px;
+            padding-bottom: calc(16px + var(--safe-area-bottom));
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
             background: 
                 radial-gradient(ellipse at 20% 50%, rgba(0,229,212,0.03) 0%, transparent 50%),
                 radial-gradient(ellipse at 80% 50%, rgba(0,212,255,0.03) 0%, transparent 50%),
                 var(--bg-primary);
+            overscroll-behavior-y: contain;
         }
-        .chat-container::-webkit-scrollbar { width: 6px; }
+
+        .chat-container::-webkit-scrollbar { width: 4px; }
         .chat-container::-webkit-scrollbar-track { background: transparent; }
-        .chat-container::-webkit-scrollbar-thumb { background: var(--border-subtle); border-radius: 3px; }
+        .chat-container::-webkit-scrollbar-thumb { background: var(--border-subtle); border-radius: 2px; }
         .chat-container::-webkit-scrollbar-thumb:hover { background: var(--border-glow); }
 
         .message {
-            max-width: 80%; padding: 16px 20px; border-radius: 16px;
-            font-size: 14px; line-height: 1.6;
-            animation: messageIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            max-width: 90%;
+            padding: 12px 14px;
+            border-radius: 14px;
+            font-size: 14px;
+            line-height: 1.5;
+            animation: messageIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
             position: relative;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            -webkit-hyphens: auto;
+            hyphens: auto;
         }
+
         @keyframes messageIn {
-            from { opacity: 0; transform: translateY(20px) scale(0.95); }
+            from { opacity: 0; transform: translateY(10px) scale(0.98); }
             to { opacity: 1; transform: translateY(0) scale(1); }
         }
+
         .user-message {
             align-self: flex-end;
             background: linear-gradient(135deg, rgba(0,229,212,0.12) 0%, rgba(0,212,255,0.08) 100%);
-            border: 1px solid rgba(0,229,212,0.25); color: var(--text-primary);
+            border: 1px solid rgba(0,229,212,0.25);
+            color: var(--text-primary);
             border-bottom-right-radius: 4px;
-            box-shadow: 0 4px 24px rgba(0,229,212,0.08), inset 0 1px 0 rgba(255,255,255,0.05);
+            box-shadow: 0 2px 12px rgba(0,229,212,0.08), inset 0 1px 0 rgba(255,255,255,0.05);
         }
+
         .bot-message {
-            align-self: flex-start; background: var(--bg-secondary);
-            border: 1px solid var(--border-subtle); color: var(--text-primary);
-            border-bottom-left-radius: 4px; max-width: 85%;
-            box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+            align-self: flex-start;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-primary);
+            border-bottom-left-radius: 4px;
+            max-width: 95%;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.3);
         }
 
         .response-text { white-space: pre-wrap; word-wrap: break-word; }
-        .response-text p { margin-bottom: 14px; }
+        .response-text p { margin-bottom: 10px; }
         .response-text p:last-child { margin-bottom: 0; }
         .response-text strong { color: var(--accent-turquoise-light); font-weight: 600; }
         .response-text h1, .response-text h2, .response-text h3 {
-            color: var(--text-primary); margin: 20px 0 12px; font-weight: 600;
+            color: var(--text-primary); margin: 16px 0 10px; font-weight: 600;
         }
-        .response-text h1 { font-size: 18px; }
-        .response-text h2 { font-size: 16px; }
+        .response-text h1 { font-size: 16px; }
+        .response-text h2 { font-size: 15px; }
         .response-text h3 { font-size: 14px; }
-        .response-text ul, .response-text ol { margin-left: 24px; margin-bottom: 14px; }
-        .response-text li { margin-bottom: 6px; color: var(--text-secondary); }
+        .response-text ul, .response-text ol { margin-left: 16px; margin-bottom: 10px; }
+        .response-text li { margin-bottom: 4px; color: var(--text-secondary); }
         .response-text code {
-            background: var(--bg-tertiary); padding: 3px 8px; border-radius: 6px;
+            background: var(--bg-tertiary); padding: 2px 6px; border-radius: 4px;
             font-family: 'SF Mono', 'Courier New', monospace; font-size: 12px;
             color: var(--accent-turquoise); border: 1px solid var(--border-subtle);
+            word-break: break-all;
         }
         .response-text pre {
-            background: var(--bg-tertiary); padding: 16px; border-radius: 12px;
-            overflow-x: auto; margin: 12px 0; border: 1px solid var(--border-subtle);
-            font-family: 'SF Mono', 'Courier New', monospace; font-size: 13px; line-height: 1.5;
+            background: var(--bg-tertiary); padding: 12px; border-radius: 8px;
+            overflow-x: auto; margin: 8px 0; border: 1px solid var(--border-subtle);
+            font-family: 'SF Mono', 'Courier New', monospace; font-size: 12px;
+            line-height: 1.4; -webkit-overflow-scrolling: touch;
         }
         .response-text blockquote {
-            border-left: 3px solid var(--accent-turquoise); padding-left: 16px;
-            margin: 12px 0; color: var(--text-secondary); font-style: italic;
+            border-left: 3px solid var(--accent-turquoise); padding-left: 12px;
+            margin: 8px 0; color: var(--text-secondary); font-style: italic;
         }
 
         /* Suggested Improvements Box */
         .suggestions-box {
             background: rgba(0, 255, 136, 0.04);
             border: 1px solid rgba(0, 255, 136, 0.12);
-            border-radius: 12px; padding: 20px; margin: 16px 0;
+            border-radius: 10px; padding: 14px; margin: 12px 0;
         }
         .suggestions-box-title {
-            color: var(--accent-green); font-weight: 600; font-size: 14px;
-            margin-bottom: 12px; letter-spacing: 0.5px;
-            display: flex; align-items: center; gap: 8px;
+            color: var(--accent-green); font-weight: 600; font-size: 13px;
+            margin-bottom: 10px; letter-spacing: 0.5px;
+            display: flex; align-items: center; gap: 6px;
         }
         .suggestions-box-title::before {
-            content: ''; width: 6px; height: 6px; border-radius: 50%;
-            background: var(--accent-green); box-shadow: 0 0 8px rgba(0,255,136,0.5);
+            content: ''; width: 5px; height: 5px; border-radius: 50%;
+            background: var(--accent-green); box-shadow: 0 0 6px rgba(0,255,136,0.5);
         }
         .suggestion-item {
-            color: var(--accent-green-light); font-size: 13px;
-            line-height: 1.5; margin-bottom: 8px; padding-left: 16px; position: relative;
+            color: var(--accent-green-light); font-size: 12px;
+            line-height: 1.4; margin-bottom: 6px; padding-left: 14px; position: relative;
         }
         .suggestion-item::before {
             content: '+'; position: absolute; left: 0;
@@ -167,44 +265,46 @@
         .section-separator {
             height: 1px;
             background: linear-gradient(90deg, transparent 0%, var(--border-glow) 20%, var(--accent-turquoise) 50%, var(--border-glow) 80%, transparent 100%);
-            margin: 24px 0; opacity: 0.6;
+            margin: 16px 0; opacity: 0.6;
         }
 
         /* Best Prompt Box */
         .best-prompt-box {
             background: rgba(0, 229, 212, 0.03);
-            border: 1px solid var(--border-glow); border-radius: 12px;
-            padding: 20px; margin: 16px 0; position: relative;
+            border: 1px solid var(--border-glow); border-radius: 10px;
+            padding: 14px; margin: 12px 0; position: relative;
         }
         .best-prompt-box::before {
-            content: ''; position: absolute; left: 0; top: 12px; bottom: 12px;
-            width: 3px; border-radius: 2px;
+            content: ''; position: absolute; left: 0; top: 10px; bottom: 10px;
+            width: 2px; border-radius: 2px;
             background: linear-gradient(180deg, var(--accent-turquoise) 0%, var(--accent-cyan) 100%);
             opacity: 0.6;
         }
         .best-prompt-title {
-            color: var(--accent-turquoise-light); font-weight: 600; font-size: 14px;
-            margin-bottom: 12px; letter-spacing: 0.5px;
-            display: flex; align-items: center; gap: 8px;
+            color: var(--accent-turquoise-light); font-weight: 600; font-size: 13px;
+            margin-bottom: 10px; letter-spacing: 0.5px;
+            display: flex; align-items: center; gap: 6px;
         }
         .best-prompt-title::before {
-            content: ''; width: 6px; height: 6px; border-radius: 50%;
-            background: var(--accent-turquoise); box-shadow: 0 0 8px rgba(0,229,212,0.5);
+            content: ''; width: 5px; height: 5px; border-radius: 50%;
+            background: var(--accent-turquoise); box-shadow: 0 0 6px rgba(0,229,212,0.5);
         }
 
         /* Code Block */
         .code-block {
             position: relative; background: var(--bg-tertiary);
-            border: 1px solid var(--border-subtle); border-radius: 12px;
-            padding: 16px; margin: 12px 0;
-            font-family: 'SF Mono', 'Courier New', monospace; font-size: 13px;
-            color: var(--accent-green); overflow-x: auto; line-height: 1.5;
+            border: 1px solid var(--border-subtle); border-radius: 8px;
+            padding: 12px; margin: 8px 0;
+            font-family: 'SF Mono', 'Courier New', monospace; font-size: 12px;
+            color: var(--accent-green); overflow-x: auto; line-height: 1.4;
+            -webkit-overflow-scrolling: touch;
         }
         .copy-btn-inline {
-            position: absolute; top: 8px; right: 8px;
+            position: absolute; top: 6px; right: 6px;
             background: var(--border-subtle); border: 1px solid var(--border-glow);
-            color: var(--text-secondary); padding: 4px 12px; border-radius: 6px;
-            font-size: 11px; cursor: pointer; transition: all 0.2s; opacity: 0; font-family: inherit;
+            color: var(--text-secondary); padding: 3px 10px; border-radius: 4px;
+            font-size: 10px; cursor: pointer; transition: all 0.2s;
+            opacity: 0; font-family: inherit;
         }
         .code-block:hover .copy-btn-inline { opacity: 1; }
         .copy-btn-inline:hover { background: var(--border-glow); color: var(--text-primary); }
@@ -212,106 +312,189 @@
 
         /* Typing Indicator */
         .typing-indicator {
-            display: flex; gap: 6px; padding: 16px 20px;
+            display: flex; gap: 4px; padding: 12px 14px;
             align-self: flex-start; background: var(--bg-secondary);
-            border-radius: 16px; border-bottom-left-radius: 4px;
+            border-radius: 12px; border-bottom-left-radius: 4px;
             border: 1px solid var(--border-subtle);
         }
         .typing-indicator span {
-            width: 8px; height: 8px; background: var(--accent-turquoise);
+            width: 6px; height: 6px; background: var(--accent-turquoise);
             border-radius: 50%; animation: typing-bounce 1.4s infinite ease-in-out;
-            box-shadow: 0 0 8px rgba(0,229,212,0.5);
+            box-shadow: 0 0 6px rgba(0,229,212,0.5);
         }
         .typing-indicator span:nth-child(1) { animation-delay: 0s; }
         .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
         .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
         @keyframes typing-bounce {
             0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
-            40% { transform: translateY(-8px); opacity: 1; }
+            40% { transform: translateY(-6px); opacity: 1; }
         }
 
-        /* Input Area */
+        /* Input Area - Mobile Optimized */
         .input-area {
-            padding: 20px 32px; border-top: 1px solid var(--border-subtle);
-            background: rgba(15, 22, 32, 0.8); backdrop-filter: blur(20px);
+            padding: 10px 12px;
+            padding-bottom: calc(10px + var(--safe-area-bottom));
+            border-top: 1px solid var(--border-subtle);
+            background: rgba(15, 22, 32, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            flex-shrink: 0;
+            z-index: 100;
+            position: relative;
         }
-        .input-container { display: flex; gap: 16px; align-items: stretch; }
-        .input-wrapper { flex: 1; position: relative; }
+
+        .input-container {
+            display: flex;
+            gap: 8px;
+            align-items: stretch;
+        }
+
+        .input-wrapper {
+            flex: 1;
+            position: relative;
+        }
+
         .input-container input {
-            width: 100%; height: 100%; background: var(--bg-tertiary);
-            border: 1px solid var(--border-subtle); border-radius: 14px;
-            padding: 14px 20px; color: var(--text-primary); font-size: 15px;
-            outline: none; transition: all 0.3s ease; font-family: inherit;
+            width: 100%;
+            height: 100%;
+            min-height: 44px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 10px 14px;
+            color: var(--text-primary);
+            font-size: 15px;
+            outline: none;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            -webkit-appearance: none;
+            appearance: none;
         }
+
         .input-container input:focus {
             border-color: var(--accent-turquoise);
-            box-shadow: 0 0 0 3px rgba(0,229,212,0.1), inset 0 1px 2px rgba(0,0,0,0.2);
+            box-shadow: 0 0 0 2px rgba(0,229,212,0.1), inset 0 1px 2px rgba(0,0,0,0.2);
         }
-        .input-container input::placeholder { color: var(--text-muted); }
+
+        .input-container input::placeholder { color: var(--text-muted); font-size: 14px; }
         .input-container input:disabled { opacity: 0.5; cursor: not-allowed; }
 
-        /* Generate Button - Blue Glass Style */
+        /* Generate Button - Mobile Optimized */
         .generate-btn-wrapper {
-            position: relative; border-radius: 14px;
+            position: relative;
+            border-radius: 12px;
+            flex-shrink: 0;
         }
+
         .generate-btn-wrapper::before {
-            content: ''; position: absolute; inset: -2px; border-radius: 16px;
+            content: ''; position: absolute; inset: -1px; border-radius: 13px;
             background: linear-gradient(135deg, rgba(0,229,212,0.6) 0%, rgba(0,212,255,0.6) 50%, rgba(0,184,168,0.6) 100%);
-            opacity: 0; transition: opacity 0.3s ease; z-index: 0; filter: blur(10px);
+            opacity: 0; transition: opacity 0.3s ease; z-index: 0; filter: blur(8px);
         }
+
         .generate-btn-wrapper:hover::before {
             opacity: 0.5; animation: glow-pulse 2s ease-in-out infinite;
         }
+
         .generate-btn-wrapper:active::before { opacity: 0.8; }
+
         @keyframes glow-pulse {
-            0%, 100% { opacity: 0.3; filter: blur(8px) brightness(1); }
-            50% { opacity: 0.6; filter: blur(14px) brightness(1.4); }
+            0%, 100% { opacity: 0.3; filter: blur(6px) brightness(1); }
+            50% { opacity: 0.6; filter: blur(10px) brightness(1.4); }
         }
+
         .input-container button {
             position: relative; z-index: 1;
             background: linear-gradient(135deg, rgba(0, 100, 200, 0.4) 0%, rgba(0, 150, 220, 0.3) 50%, rgba(0, 200, 220, 0.4) 100%);
-            backdrop-filter: blur(20px); border: 1px solid rgba(0, 212, 255, 0.3);
-            color: white; padding: 14px 28px; border-radius: 14px;
-            font-size: 15px; font-weight: 600; cursor: pointer;
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            color: white; padding: 10px 18px; border-radius: 12px;
+            font-size: 14px; font-weight: 600; cursor: pointer;
             transition: all 0.3s ease; font-family: inherit;
             letter-spacing: 0.5px; white-space: nowrap;
-            box-shadow: 0 4px 16px rgba(0, 100, 200, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 0 20px rgba(0, 212, 255, 0.1);
-            text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+            min-height: 44px;
+            box-shadow: 0 2px 12px rgba(0, 100, 200, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 0 16px rgba(0, 212, 255, 0.1);
+            text-shadow: 0 0 8px rgba(0, 212, 255, 0.5);
+            -webkit-appearance: none;
+            appearance: none;
+            touch-action: manipulation;
         }
+
         .input-container button:hover:not(:disabled) {
             background: linear-gradient(135deg, rgba(0, 120, 220, 0.5) 0%, rgba(0, 170, 240, 0.4) 50%, rgba(0, 220, 240, 0.5) 100%);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 32px rgba(0, 150, 220, 0.3), 0 0 40px rgba(0, 212, 255, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 20px rgba(0, 150, 220, 0.3), 0 0 32px rgba(0, 212, 255, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.15);
             border-color: rgba(0, 212, 255, 0.5);
         }
+
         .input-container button:active:not(:disabled) {
             transform: translateY(0);
-            box-shadow: 0 2px 8px rgba(0, 100, 200, 0.2);
+            box-shadow: 0 1px 6px rgba(0, 100, 200, 0.2);
         }
+
         .input-container button:disabled {
             background: var(--border-subtle); cursor: not-allowed; opacity: 0.6;
             box-shadow: none; border-color: var(--border-subtle); text-shadow: none;
         }
 
         .meta-line {
-            font-size: 11px; color: var(--text-muted); margin-top: 10px;
+            font-size: 10px; color: var(--text-muted); margin-top: 6px;
             font-weight: 500; letter-spacing: 0.5px;
         }
 
-        /* Error Message - now hidden, we show fallback instead */
+        /* Error Message */
+        .error-message {
+            background: rgba(255, 68, 102, 0.08);
+            border: 1px solid rgba(255, 68, 102, 0.2);
+            color: #ff8899; padding: 10px 14px; border-radius: 8px;
+            margin-top: 8px; font-size: 12px; font-weight: 500;
+        }
+
+        .error-message a { color: var(--accent-cyan); text-decoration: none; }
+        .error-message a:hover { text-decoration: underline; }
+
+        /* Fallback Notice */
         .fallback-notice {
             background: rgba(0, 229, 212, 0.05);
             border: 1px solid rgba(0, 229, 212, 0.15);
             color: var(--accent-turquoise-light);
-            padding: 10px 14px; border-radius: 8px;
-            margin-bottom: 12px; font-size: 12px; font-weight: 500;
+            padding: 8px 12px; border-radius: 8px;
+            margin-bottom: 10px; font-size: 12px; font-weight: 500;
         }
 
-        ::-webkit-scrollbar { width: 6px; }
+        /* Scrollbar styling */
+        ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: var(--border-subtle); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb { background: var(--border-subtle); border-radius: 2px; }
         ::-webkit-scrollbar-thumb:hover { background: var(--border-glow); }
+
+        /* Mobile Landscape & Tablet */
+        @media (min-width: 768px) {
+            .header { padding: 16px 24px; padding-top: calc(16px + var(--safe-area-top)); }
+            .logo-icon { width: 40px; height: 40px; }
+            .logo-title { font-size: 20px; }
+            .logo-subtitle { font-size: 10px; }
+            .chat-container { padding: 24px; padding-bottom: calc(24px + var(--safe-area-bottom)); }
+            .message { max-width: 80%; padding: 14px 16px; }
+            .input-area { padding: 14px 20px; padding-bottom: calc(14px + var(--safe-area-bottom)); }
+            .input-container input { padding: 12px 16px; font-size: 16px; }
+            .input-container button { padding: 12px 24px; font-size: 15px; }
+        }
+
+        /* Desktop */
+        @media (min-width: 1024px) {
+            .header { padding: 20px 32px; padding-top: calc(20px + var(--safe-area-top)); }
+            .logo-icon { width: 44px; height: 44px; }
+            .logo-title { font-size: 22px; }
+            .chat-container { padding: 32px; padding-bottom: calc(32px + var(--safe-area-bottom)); gap: 16px; }
+            .message { max-width: 75%; padding: 16px 20px; border-radius: 16px; }
+            .input-area { padding: 16px 24px; padding-bottom: calc(16px + var(--safe-area-bottom)); }
+            .input-container { gap: 12px; }
+            .input-container input { padding: 14px 18px; border-radius: 14px; }
+            .input-container button { padding: 14px 28px; border-radius: 14px; font-size: 15px; }
+        }
     </style>
+<base target="_blank">
 </head>
 <body>
     <div class="header">
@@ -355,7 +538,7 @@
     <div class="input-area">
         <div class="input-container">
             <div class="input-wrapper">
-                <input type="text" id="userInput" placeholder="Describe what you want to create..." disabled>
+                <input type="text" id="userInput" placeholder="Describe what you want to create..." disabled autocomplete="off" autocorrect="off" autocapitalize="off">
             </div>
             <div class="generate-btn-wrapper">
                 <button id="sendBtn" disabled>Generate</button>
@@ -421,28 +604,27 @@
             function formatResponse(text) {
                 var html = escapeHtml(text);
 
-                // Detect and wrap Suggested Improvements section
+                // Wrap Suggested Improvements section
                 if (html.indexOf('Suggested Improvements') !== -1) {
                     html = html.replace(/\*\*Suggested Improvements\*\*/g, '<div class="suggestions-box"><div class="suggestions-box-title">Suggested Improvements</div>');
-                    // Convert bullet points to styled items
-                    html = html.replace(/<div class="suggestions-box">([\s\S]*?)(?=<div class="section-separator">|<div class="best-prompt-box">|<hr|<p>---|<\/div><\/div>)/g, function(match, content) {
-                        var items = content.replace(/- (.*?)<br>/g, '<div class="suggestion-item">$1</div>');
-                        items = items.replace(/- (.*?)<\/p>/g, '<div class="suggestion-item">$1</div>');
-                        return '<div class="suggestions-box"><div class="suggestions-box-title">Suggested Improvements</div>' + items + '</div>';
+                    html = html.replace(/- (.*?)<br>/g, '<div class="suggestion-item">$1</div>');
+                    html = html.replace(/- (.*?)<\/p>/g, '<div class="suggestion-item">$1</div>');
+                    html = html.replace(/<div class="suggestions-box">([\s\S]*?)<\/div>/g, function(match, content) {
+                        return '<div class="suggestions-box"><div class="suggestions-box-title">Suggested Improvements</div>' + content + '</div>';
                     });
                 }
 
-                // Detect and wrap Best Prompt section
+                // Wrap Best Prompt section
                 if (html.indexOf('Best Prompt') !== -1) {
                     html = html.replace(/\*\*Best Prompt\*\*/g, '<div class="section-separator"></div><div class="best-prompt-box"><div class="best-prompt-title">Best Prompt</div>');
                 }
 
-                // Close best prompt box at end
-                if (html.indexOf('best-prompt-box') !== -1 && html.indexOf('</div></div>') === -1) {
+                // Close best prompt box
+                if (html.indexOf('best-prompt-box') !== -1) {
                     html = html + '</div>';
                 }
 
-                // Handle separator line
+                // Handle separator
                 html = html.replace(/<p>---<\/p>/g, '<div class="section-separator"></div>');
                 html = html.replace(/<hr\s*\/?>/g, '<div class="section-separator"></div>');
 
@@ -503,16 +685,16 @@
                     var data = await response.json();
                     removeTyping();
 
-                    // Always show result, never show error
                     var botDiv = document.createElement('div');
                     botDiv.className = 'message bot-message';
 
-                    var content = '';
                     if (data.success && data.text) {
-                        content = formatResponse(data.text);
+                        botDiv.innerHTML = formatResponse(data.text) +
+                            '<div class="meta-line">Generated with ' + data.model + ' &bull; ' + new Date().toLocaleTimeString() + '</div>';
                     } else {
-                        // Fallback - format the user's request as a basic prompt
-                        content = '<div class="response-text"><div class="fallback-notice">Using basic optimization (AI service temporarily unavailable)</div>' +
+                        // Fallback
+                        botDiv.innerHTML = '<div class="response-text">' +
+                            '<div class="fallback-notice">Using basic optimization</div>' +
                             '<div class="suggestions-box"><div class="suggestions-box-title">Suggested Improvements</div>' +
                             '<div class="suggestion-item">Added specificity and constraints for better AI results</div>' +
                             '<div class="suggestion-item">Included output format and structure requirements</div>' +
@@ -521,10 +703,10 @@
                             '<div class="best-prompt-box"><div class="best-prompt-title">Best Prompt</div>' +
                             '<p><strong>Task:</strong> ' + escapeHtml(text) + '</p>' +
                             '<p>Please provide a detailed, comprehensive response with specific examples, clear structure, and actionable steps. Include any relevant technical requirements, constraints, and best practices. Format the output with clear headers and bullet points for readability.</p>' +
-                            '</div></div>';
+                            '</div></div>' +
+                            '<div class="meta-line">Basic optimization &bull; ' + new Date().toLocaleTimeString() + '</div>';
                     }
 
-                    botDiv.innerHTML = content + '<div class="meta-line">Generated with ' + (data.model || 'fallback') + ' &bull; ' + new Date().toLocaleTimeString() + '</div>';
                     chatContainer.appendChild(botDiv);
                     chatContainer.scrollTop = chatContainer.scrollHeight;
                     statusDot.className = 'status-dot ready';
@@ -536,7 +718,7 @@
                     var botDiv = document.createElement('div');
                     botDiv.className = 'message bot-message';
                     botDiv.innerHTML = '<div class="response-text">' +
-                        '<div class="fallback-notice">Using basic optimization (connection issue)</div>' +
+                        '<div class="fallback-notice">Using basic optimization</div>' +
                         '<div class="suggestions-box"><div class="suggestions-box-title">Suggested Improvements</div>' +
                         '<div class="suggestion-item">Added specificity and constraints for better AI results</div>' +
                         '<div class="suggestion-item">Included output format and structure requirements</div>' +
@@ -576,6 +758,13 @@
 
             userInput.addEventListener('keypress', handleKeyPress);
             sendBtn.addEventListener('click', sendMessage);
+
+            // Handle mobile keyboard
+            userInput.addEventListener('focus', function() {
+                setTimeout(function() {
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                }, 300);
+            });
 
             checkHealth();
             setInterval(checkHealth, 30000);
