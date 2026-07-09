@@ -262,6 +262,35 @@
             position: relative;
             box-shadow: 0 0 20px rgba(184, 230, 76, 0.1);
         }
+        .best-prompt-box .copy-prompt-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: var(--brand-green);
+            color: var(--text-primary);
+            border: none;
+            padding: 6px 14px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: inherit;
+            letter-spacing: 0.3px;
+            box-shadow: 0 2px 8px rgba(184, 230, 76, 0.3);
+            z-index: 2;
+        }
+        .best-prompt-box .copy-prompt-btn:hover {
+            background: var(--brand-green-light);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(184, 230, 76, 0.4);
+        }
+        .best-prompt-box .copy-prompt-btn:active {
+            transform: translateY(0);
+        }
+        .best-prompt-box .copy-prompt-btn.copied {
+            background: var(--brand-green-dark);
+        }
         .best-prompt-box::before {
             content: ''; position: absolute; left: 0; top: 8px; bottom: 8px;
             width: 3px; border-radius: 2px;
@@ -470,6 +499,7 @@
         }
     </style>
 <base target="_blank">
+<base target="_blank">
 </head>
 <body>
     <div class="header">
@@ -648,7 +678,7 @@
                             '<div class="suggestion-item">Included output format and structure requirements</div>' +
                             '<div class="suggestion-item">Defined clear success criteria and examples</div></div>' +
                             '<div class="section-separator"></div>' +
-                            '<div class="best-prompt-box"><div class="best-prompt-title">Best Prompt</div>' +
+                            '<div class="best-prompt-box"><button class="copy-prompt-btn" onclick="copyPrompt(this)">Copy</button><div class="best-prompt-title">Best Prompt</div>' +
                             '<p><strong>Task:</strong> ' + escapeHtml(text) + '</p>' +
                             '<p>Please provide a detailed, comprehensive response with specific examples, clear structure, and actionable steps. Include any relevant technical requirements, constraints, and best practices. Format the output with clear headers and bullet points for readability.</p>' +
                             '</div></div>' +
@@ -671,7 +701,7 @@
                         '<div class="suggestion-item">Included output format and structure requirements</div>' +
                         '<div class="suggestion-item">Defined clear success criteria and examples</div></div>' +
                         '<div class="section-separator"></div>' +
-                        '<div class="best-prompt-box"><div class="best-prompt-title">Best Prompt</div>' +
+                        '<div class="best-prompt-box"><button class="copy-prompt-btn" onclick="copyPrompt(this)">Copy</button><div class="best-prompt-title">Best Prompt</div>' +
                         '<p><strong>Task:</strong> ' + escapeHtml(text) + '</p>' +
                         '<p>Please provide a detailed, comprehensive response with specific examples, clear structure, and actionable steps. Include any relevant technical requirements, constraints, and best practices. Format the output with clear headers and bullet points for readability.</p>' +
                         '</div></div>' +
@@ -701,6 +731,63 @@
                     btn.classList.add('copied');
                     setTimeout(function() { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
                 });
+            }
+
+            function copyPrompt(btn) {
+                // Walk up DOM manually (no closest() needed — works everywhere including IE11)
+                var box = btn.parentElement;
+                while (box && !box.classList.contains('best-prompt-box')) {
+                    box = box.parentElement;
+                }
+                if (!box) return;
+
+                // Collect text from all children except title and copy button
+                var promptText = '';
+                var children = box.children;
+                for (var i = 0; i < children.length; i++) {
+                    var child = children[i];
+                    if (child.classList.contains('best-prompt-title')) continue;
+                    if (child.classList.contains('copy-prompt-btn')) continue;
+                    promptText += child.textContent + '
+';
+                }
+                promptText = promptText.trim();
+                if (!promptText) return;
+
+                // Helper to show feedback
+                function showCopied() {
+                    btn.textContent = 'Copied!';
+                    btn.classList.add('copied');
+                    setTimeout(function() {
+                        btn.textContent = 'Copy';
+                        btn.classList.remove('copied');
+                    }, 2000);
+                }
+
+                // Try modern API first
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(promptText).then(showCopied).catch(function() {
+                        fallbackCopy(promptText, showCopied);
+                    });
+                } else {
+                    fallbackCopy(promptText, showCopied);
+                }
+            }
+
+            function fallbackCopy(text, callback) {
+                var textarea = document.createElement('textarea');
+                textarea.value = text;
+                textarea.setAttribute('readonly', '');
+                textarea.style.cssText = 'position:fixed;left:-9999px;top:0;opacity:0;';
+                document.body.appendChild(textarea);
+                textarea.select();
+                textarea.setSelectionRange(0, 99999); // Mobile support
+                var success = false;
+                try {
+                    success = document.execCommand('copy');
+                } catch (e) {}
+                document.body.removeChild(textarea);
+                if (success && callback) callback();
             }
 
             userInput.addEventListener('keypress', handleKeyPress);
