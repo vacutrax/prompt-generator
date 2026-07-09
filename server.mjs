@@ -18,7 +18,7 @@ if (!GEMINI_API_KEY) {
 
 const NARA_API_KEY = process.env.NARA_API_KEY;
 
-const GEMINI_MODELS = ['gemini-3-flash','gemini-2.5-flash','gemini-3.5-flash'];
+const GEMINI_MODELS = ['gemini-3.5-flash','gemini-3-flash','gemini-2.5-flash'];
 const FALLBACK_MODEL = 'mimo-v2.5-pro-free';
 const NARA_BASE_URL = 'https://router.bynara.id/v1';
 
